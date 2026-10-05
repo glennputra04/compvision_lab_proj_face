@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import os
+import random
 
 haar_path = os.path.join(
     "haarcascade",
@@ -20,6 +21,9 @@ def split_dataset():
     train_data = []
     test_data = []
 
+    # set random seed supaya hasil suffle konsisten
+    random.seed(42)
+    
     # Ambil semua folder person di dalam dataset
     persons = sorted(os.listdir("dataset"))
 
@@ -36,6 +40,9 @@ def split_dataset():
             if filename.lower().endswith((".jpg", ".jpeg", ".png")):
                 image_path = os.path.join(person_path, filename)
                 images.append(image_path)
+
+        # Randomize gambar untuk setiap person
+        random.shuffle(images)
 
         # Hitung 80%
         split_index = int(len(images) * 0.8)
