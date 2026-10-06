@@ -69,4 +69,67 @@ def split_dataset():
 
     return train_data, test_data
 
+def detect_face(image_path):
+    image = cv2.imread(image_path)
+    if image is None:
+        return None
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    faces = haar_cascade.detectMultiScale(gray, scaleFactor=1.03, minNeighbors=4)
+
+    if len(faces) == 0:
+        return None
+
+    largest_face = max(faces, key=lambda rect: rect[2] * rect[3])
+
+    x, y, w, h = largest_face
+    face_region = gray[y:y+h, x:x+w]
+
+    return face_region
+
 train_data, test_data = split_dataset()
+
+face_region_train = []
+face_region_test = []
+failed_detections = []
+
+for image_path, person in train_data:
+    face_region = detect_face(image_path)
+    if face_region is not None:
+        face_region_train.append((face_region, person))
+    else:
+        failed_detections.append((image_path, person))
+
+for image_path, person in test_data:
+    face_region = detect_face(image_path)
+    if face_region is not None:
+        face_region_test.append((face_region, person))
+    else:
+        failed_detections.append((image_path, person))
+
+
+# Check random face sampling
+
+# random_face = random.choice(face_region_train)
+
+# for face, person in face_region_train:
+#     print(f"Detected face for {person} with shape: {face.shape}")
+#     detected_face = cv2.resize(face, (200, 200))
+#     cv2.imshow(f"Detected Face - {person}", detected_face)
+# face = detect_face("dataset/Koby/Koby_4.jpg")
+
+# if face is not None:
+#     print(face.shape)
+#     cv2.imshow("Detected Face", face)
+#     cv2.waitKey(0)
+#     cv2.destroyAllWindows()
+# else:
+#     print("No face detected")
+
+# Failed Image Detection
+
+for image_path, person in failed_detections:
+    print(f"Failed to detect face in {image_path} for person {person}")
+
+
+
+# Train Model
