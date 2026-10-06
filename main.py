@@ -86,50 +86,37 @@ def detect_face(image_path):
 
     return face_region
 
-train_data, test_data = split_dataset()
-
-face_region_train = []
-face_region_test = []
-failed_detections = []
-
-for image_path, person in train_data:
-    face_region = detect_face(image_path)
-    if face_region is not None:
-        face_region_train.append((face_region, person))
-    else:
-        failed_detections.append((image_path, person))
-
-for image_path, person in test_data:
-    face_region = detect_face(image_path)
-    if face_region is not None:
-        face_region_test.append((face_region, person))
-    else:
-        failed_detections.append((image_path, person))
-
-
-# Check random face sampling
-
-# random_face = random.choice(face_region_train)
-
-# for face, person in face_region_train:
-#     print(f"Detected face for {person} with shape: {face.shape}")
-#     detected_face = cv2.resize(face, (200, 200))
-#     cv2.imshow(f"Detected Face - {person}", detected_face)
-# face = detect_face("dataset/Koby/Koby_4.jpg")
-
-# if face is not None:
-#     print(face.shape)
-#     cv2.imshow("Detected Face", face)
-#     cv2.waitKey(0)
-#     cv2.destroyAllWindows()
-# else:
-#     print("No face detected")
-
-# Failed Image Detection
-
-for image_path, person in failed_detections:
-    print(f"Failed to detect face in {image_path} for person {person}")
-
-
-
 # Train Model
+def train_model(face_region_train):
+    #TODO: Implement the training logic for the face recognizer using the face_region_train data
+    pass
+
+
+def menu_one():
+    train_data, test_data = split_dataset()
+
+    face_region_train = []
+    face_region_test = []
+    failed_detections = []
+
+    for image_path, person in train_data:
+        face_region = detect_face(image_path)
+        if face_region is not None:
+            face_region_train.append((face_region, person))
+        else:
+            failed_detections.append((image_path, person))
+
+    for image_path, person in test_data:
+        face_region = detect_face(image_path)
+        if face_region is not None:
+            face_region_test.append((face_region, person))
+        else:
+            failed_detections.append((image_path, person))
+
+    for image_path, person in failed_detections:
+        print(f"Failed to detect face in {image_path} for person {person}")
+
+    train_model(face_region_train)
+
+
+menu_one()
