@@ -69,4 +69,54 @@ def split_dataset():
 
     return train_data, test_data
 
-train_data, test_data = split_dataset()
+def detect_face(image_path):
+    image = cv2.imread(image_path)
+    if image is None:
+        return None
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    faces = haar_cascade.detectMultiScale(gray, scaleFactor=1.03, minNeighbors=4)
+
+    if len(faces) == 0:
+        return None
+
+    largest_face = max(faces, key=lambda rect: rect[2] * rect[3])
+
+    x, y, w, h = largest_face
+    face_region = gray[y:y+h, x:x+w]
+
+    return face_region
+
+# Train Model
+def train_model(face_region_train):
+    #TODO: Implement the training logic for the face recognizer using the face_region_train data
+    pass
+
+
+def menu_one():
+    train_data, test_data = split_dataset()
+
+    face_region_train = []
+    face_region_test = []
+    failed_detections = []
+
+    for image_path, person in train_data:
+        face_region = detect_face(image_path)
+        if face_region is not None:
+            face_region_train.append((face_region, person))
+        else:
+            failed_detections.append((image_path, person))
+
+    for image_path, person in test_data:
+        face_region = detect_face(image_path)
+        if face_region is not None:
+            face_region_test.append((face_region, person))
+        else:
+            failed_detections.append((image_path, person))
+
+    for image_path, person in failed_detections:
+        print(f"Failed to detect face in {image_path} for person {person}")
+
+    train_model(face_region_train)
+
+
+menu_one()
