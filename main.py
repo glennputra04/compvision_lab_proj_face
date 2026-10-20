@@ -7,22 +7,12 @@ haar_path = os.path.join(
     "haarcascade",
     "haarcascade_frontalface_default.xml"
 )
-haar_alt_path = os.path.join(
-    cv2.data.haarcascades,
-    "haarcascade_frontalface_alt.xml"
-)
 haar_cascade = cv2.CascadeClassifier(haar_path)
-haar_alt = cv2.CascadeClassifier(haar_alt_path)
 
 if haar_cascade.empty():
     print("Failed to load Haar Cascade")
 else:
     print("Haar Cascade ready")
-
-if haar_alt.empty():
-    print("Failed to load Haar Cascade Alt")
-else:
-    print("Haar Cascade Alt ready")
 
 recognizer = cv2.face.LBPHFaceRecognizer_create()
 
@@ -85,11 +75,7 @@ def detect_face(image_path):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     faces = haar_cascade.detectMultiScale(gray, scaleFactor=1.03, minNeighbors=4)
 
-    # Coba alternatif jika default cascade gagal mendeteksi wajah
-    if len(faces) == 0 and not haar_alt.empty():
-        faces = haar_alt.detectMultiScale(gray, scaleFactor=1.03, minNeighbors=4)
-
-    # Skip gambar jika kedua cascade gagal
+    # Skip gambar jika wajah tidak terdeteksi
     if len(faces) == 0:
         return None
 
@@ -116,6 +102,12 @@ def train_model(face_region_train):
     labels = []
 
     for face_region, person in face_region_train:
+        # Pastikan gambar dalam format grayscale
+        if len(face_region.shape) == 3:
+            face_region = cv2.cvtColor(
+                face_region,
+                cv2.COLOR_BGR2GRAY
+            )
         # LBPH perlu gambar grayscale berukuran konsisten
         face = cv2.resize(face_region, (200, 200))
         faces.append(face)
@@ -126,16 +118,21 @@ def train_model(face_region_train):
         np.array(labels, dtype=np.int32)
     )
 
-    # Simpan trained model
-    recognizer.save("nakama_model.yml")
+    os.makedirs("model", exist_ok=True)
 
-    # Simpan mapping label untuk prediksi 
-    np.save("nakama_labels.npy", np.array(person_names))
+    # Simpan trained model
+    recognizer.save(os.path.join("model", "nakama_model.yml"))
+
+    # Simpan mapping label
+    np.save(
+        os.path.join("model", "nakama_labels.npy"),
+        np.array(person_names)
+    )
 
     print("Model training completed.")
     print(f"Total training faces: {len(faces)}")
     print(f"Total people recognized: {len(person_names)}")
-    print("Model saved to nakama_model.yml")
+    print("Model saved to model/nakama_model.yml")
 
 def menu_one():
     train_data, test_data = split_dataset()
