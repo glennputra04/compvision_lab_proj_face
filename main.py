@@ -7,7 +7,6 @@ haar_path = os.path.join(
     "haarcascade",
     "haarcascade_frontalface_default.xml"
 )
-
 haar_cascade = cv2.CascadeClassifier(haar_path)
 
 if haar_cascade.empty():
@@ -76,6 +75,7 @@ def detect_face(image_path):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     faces = haar_cascade.detectMultiScale(gray, scaleFactor=1.03, minNeighbors=4)
 
+    # Skip gambar jika wajah tidak terdeteksi
     if len(faces) == 0:
         return None
 
@@ -88,9 +88,51 @@ def detect_face(image_path):
 
 # Train Model
 def train_model(face_region_train):
-    #TODO: Implement the training logic for the face recognizer using the face_region_train data
-    pass
+    if len(face_region_train) == 0:
+        print("No training faces available.")
+        return
 
+    # Ubah nama person ke label numerik
+    person_names = sorted(set(person for _, person in face_region_train))
+    label_map = {
+        person: label for label, person in enumerate(person_names)
+    }
+
+    faces = []
+    labels = []
+
+    for face_region, person in face_region_train:
+        # Pastikan gambar dalam format grayscale
+        if len(face_region.shape) == 3:
+            face_region = cv2.cvtColor(
+                face_region,
+                cv2.COLOR_BGR2GRAY
+            )
+        # LBPH perlu gambar grayscale berukuran konsisten
+        face = cv2.resize(face_region, (200, 200))
+        faces.append(face)
+        labels.append(label_map[person])
+
+    recognizer.train(
+        faces,
+        np.array(labels, dtype=np.int32)
+    )
+
+    os.makedirs("model", exist_ok=True)
+
+    # Simpan trained model
+    recognizer.save(os.path.join("model", "nakama_model.yml"))
+
+    # Simpan mapping label
+    np.save(
+        os.path.join("model", "nakama_labels.npy"),
+        np.array(person_names)
+    )
+
+    print("Model training completed.")
+    print(f"Total training faces: {len(faces)}")
+    print(f"Total people recognized: {len(person_names)}")
+    print("Model saved to model/nakama_model.yml")
 
 def menu_one():
     train_data, test_data = split_dataset()
