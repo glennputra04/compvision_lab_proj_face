@@ -1,3 +1,4 @@
+import sys
 import cv2
 import numpy as np
 import os
@@ -212,11 +213,27 @@ def menu_two() :
     pass
 
 def menu_three() :
-    # TO DO: Implement menu_three functionality
-    pass
-
+    print("Nakama-tachi, sayonara.")
+    sys.exit()
+    
 def main() :
-    # TO DO: Implement main menu functionality
-    pass
+    while True:
+        print("")
+        print("Menu:")
+        print("1. Train and test model")
+        print("2. Predict")
+        print("3. Exit")
 
-menu_one()
+        choice = input("Input your choice: ")
+
+        if choice == '1':
+            menu_one()
+        elif choice == '2':
+            menu_two()
+        elif choice == '3':
+            menu_three()
+        else:
+            print("Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
