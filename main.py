@@ -74,7 +74,6 @@ def detect_face(image_path):
         return None
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     faces = haar_cascade.detectMultiScale(gray, scaleFactor=1.03, minNeighbors=4)
-
     # Skip gambar jika wajah tidak terdeteksi
     if len(faces) == 0:
         return None
@@ -90,7 +89,7 @@ def detect_face(image_path):
 def train_model(face_region_train):
     if len(face_region_train) == 0:
         print("No training faces available.")
-        return
+        return False
 
     # Ubah nama person ke label numerik
     person_names = sorted(set(person for _, person in face_region_train))
@@ -133,6 +132,52 @@ def train_model(face_region_train):
     print(f"Total training faces: {len(faces)}")
     print(f"Total people recognized: {len(person_names)}")
     print("Model saved to model/nakama_model.yml")
+    return True
+
+def predict_test(face_region_test):
+    if len(face_region_test) == 0:
+        print("No testing faces available.")
+        return False
+
+    recognizer.read(os.path.join("model", "nakama_model.yml"))
+    person_names = np.load(os.path.join("model", "nakama_labels.npy"), allow_pickle=True)
+
+    correct_dictionary = {}
+    total_dictionary = {}
+
+    for _, person in face_region_test:
+        correct_dictionary[person] = 0
+        total_dictionary[person] = 0
+
+    for face_region, actual_person in face_region_test:
+        if len(face_region.shape) == 3:
+            face_region = cv2.cvtColor(
+                face_region,
+                cv2.COLOR_BGR2GRAY
+            )
+
+        face = cv2.resize(face_region, (200, 200))
+
+        label, _ = recognizer.predict(face)
+        predicted_person = person_names[label]
+        total_dictionary[actual_person] += 1
+
+        if predicted_person == actual_person:
+            correct_dictionary[actual_person] += 1
+
+    total_test = sum(total_dictionary.values())
+    total_acc = 0
+    total_person = 0
+    for person, count in correct_dictionary.items():
+        average_person = count / total_dictionary[person] if total_dictionary[person] > 0 else 0
+        total_acc += average_person
+        total_person += 1
+
+    macro_accuracy = total_acc / total_person if total_person > 0 else 0
+
+    print(f"Test images evaluated: {total_test}")
+    print(f"Average accuracy: {macro_accuracy:.2%}")
+    return True
 
 def menu_one():
     train_data, test_data = split_dataset()
@@ -158,7 +203,20 @@ def menu_one():
     for image_path, person in failed_detections:
         print(f"Failed to detect face in {image_path} for person {person}")
 
-    train_model(face_region_train)
+    if train_model(face_region_train):
+        predict_test(face_region_test)
+    else :
+        print("Training failed. Cannot proceed to testing.")
+def menu_two() :
+    # TO DO: Implement menu_two functionality
+    pass
 
+def menu_three() :
+    # TO DO: Implement menu_three functionality
+    pass
+
+def main() :
+    # TO DO: Implement main menu functionality
+    pass
 
 menu_one()
