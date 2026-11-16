@@ -208,9 +208,51 @@ def menu_one():
         predict_test(face_region_test)
     else :
         print("Training failed. Cannot proceed to testing.")
-def menu_two() :
-    # TO DO: Implement menu_two functionality
-    pass
+
+def menu_two():
+    model_path = os.path.join("model", "nakama_model.yml")
+    labels_path = os.path.join("model", "nakama_labels.npy")
+
+    # Cek apakah saved model ada
+    if not os.path.isfile(model_path) or not os.path.isfile(labels_path):
+        print("\n[ERROR] Saved model not found.")
+        print("Please train the model first using Menu 1.")
+        return
+
+    # load saved model
+    try:
+        recognizer.read(model_path)
+
+        person_names = np.load(
+            labels_path,
+            allow_pickle=True
+        )
+
+        print("\n[INFO] Saved model loaded successfully.")
+
+    except Exception as e:
+        print(f"\n[ERROR] Failed to load saved model: {e}")
+        return
+
+    # meminta user untuk input path gambar yang akan diprediksi
+    image_path = input(
+        "Input path for image to predict (absolute path) >> "
+    ).strip().strip('"').strip("'")
+
+    # Validasi path gambar
+    if not image_path:
+        print("[ERROR] Image path cannot be empty.")
+        return
+
+    if not os.path.isabs(image_path):
+        print("[ERROR] Please input an absolute path.")
+        return
+
+    if not os.path.isfile(image_path):
+        print("[ERROR] Image file not found.")
+        return
+
+    print("[INFO] Image path received successfully.")
 
 def menu_three() :
     print("Nakama-tachi, sayonara.")
